@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Storage Public — Asset Gallery</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --accent: #38bdf8;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: #334155;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          sans-serif;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        padding: 2rem 1rem;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      header {
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+      }
+
+      header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .search-bar {
+        flex: 1;
+        min-width: 250px;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background-color: var(--card-bg);
+        color: var(--text);
+        font-size: 1rem;
+        outline: none;
+      }
+
+      .search-bar:focus {
+        border-color: var(--accent);
+      }
+
+      .filter-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background-color: var(--card-bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-btn:hover,
+      .filter-btn.active {
+        background-color: var(--accent);
+        color: var(--bg);
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+      }
+
+      .preview {
+        height: 160px;
+        background-color: #0b1120;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .preview img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .preview .icon-fallback {
+        font-size: 3rem;
+        color: var(--text-muted);
+      }
+
+      .card-body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: space-between;
+      }
+
+      .file-info {
+        margin-bottom: 1rem;
+      }
+
+      .file-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        word-break: break-all;
+        margin-bottom: 0.25rem;
+      }
+
+      .file-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .copy-btn {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 6px;
+        border: none;
+        background-color: var(--border);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: background-color 0.2s ease;
+      }
+
+      .copy-btn:hover {
+        background-color: var(--accent);
+        color: var(--bg);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background-color: var(--accent);
+        color: var(--bg);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📦 Storage Public Gallery</h1>
+        <p>Katalog berkas & aset statis publik</p>
+      </header>
+
+      <div class="controls">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-bar"
+          placeholder="Cari nama aset..."
+        />
+        <button class="filter-btn active" onclick="filterCategory('all', this)">
+          Semua
+        </button>
+        <button class="filter-btn" onclick="filterCategory('image', this)">
+          Gambar
+        </button>
+        <button class="filter-btn" onclick="filterCategory('logo', this)">
+          Logo
+        </button>
+        <button class="filter-btn" onclick="filterCategory('doc', this)">
+          Dokumen
+        </button>
+      </div>
+
+      <div class="grid" id="assetGrid">
+        <!-- Item Aset 1 -->
+        <div class="card" data-category="logo" data-name="logo-primary">
+          <div class="preview">
+            <img
+              src="assets/logos/logo.png"
+              alt="Logo Utama"
+              onerror="
+                this.style.display = 'none';
+                this.nextElementSibling.style.display = 'block';
+              "
+            />
+            <span class="icon-fallback" style="display: none">🏷️</span>
+          </div>
+          <div class="card-body">
+            <div class="file-info">
+              <div class="file-name">logo.png</div>
+              <div class="file-meta">PNG • assets/logos/</div>
+            </div>
+            <button class="copy-btn" onclick="copyUrl('assets/logos/logo.png')">
+              Salin URL
+            </button>
+          </div>
+        </div>
+
+        <!-- Item Aset 2 -->
+        <div class="card" data-category="image" data-name="banner-hero">
+          <div class="preview">
+            <img
+              src="assets/images/banner.jpg"
+              alt="Banner Hero"
+              onerror="
+                this.style.display = 'none';
+                this.nextElementSibling.style.display = 'block';
+              "
+            />
+            <span class="icon-fallback" style="display: none">🖼️</span>
+          </div>
+          <div class="card-body">
+            <div class="file-info">
+              <div class="file-name">banner.jpg</div>
+              <div class="file-meta">JPG • assets/images/</div>
+            </div>
+            <button
+              class="copy-btn"
+              onclick="copyUrl('assets/images/banner.jpg')"
+            >
+              Salin URL
+            </button>
+          </div>
+        </div>
+
+        <!-- Item Aset 3 -->
+        <div class="card" data-category="doc" data-name="panduan-penggunaan">
+          <div class="preview">
+            <span class="icon-fallback">📄</span>
+          </div>
+          <div class="card-body">
+            <div class="file-info">
+              <div class="file-name">guide.pdf</div>
+              <div class="file-meta">PDF • assets/docs/</div>
+            </div>
+            <button class="copy-btn" onclick="copyUrl('assets/docs/guide.pdf')">
+              Salin URL
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">URL berhasil disalin!</div>
+
+    <script>
+      function copyUrl(relativePath) {
+        const fullUrl =
+          window.location.href.replace("index.html", "") + relativePath;
+        navigator.clipboard
+          .writeText(fullUrl)
+          .then(() => {
+            showToast("URL berhasil disalin!");
+          })
+          .catch((err) => {
+            showToast("Gagal menyalin URL.");
+          });
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2000);
+      }
+
+      function filterCategory(category, btn) {
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const cards = document.querySelectorAll(".card");
+        cards.forEach((card) => {
+          if (category === "all" || card.dataset.category === category) {
+            card.style.display = "flex";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      }
+
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function (e) {
+          const query = e.target.value.toLowerCase();
+          const cards = document.querySelectorAll(".card");
+
+          cards.forEach((card) => {
+            const name = card.dataset.name.toLowerCase();
+            const fileName = card
+              .querySelector(".file-name")
+              .textContent.toLowerCase();
+
+            if (name.includes(query) || fileName.includes(query)) {
+              card.style.display = "flex";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
